@@ -1,0 +1,13 @@
+{
+    "description": "Amazon Linux runner for the Spack GitLab CI/CD pipeline.",
+    "architectures": [
+        "amd64",
+        "arm64v8"
+    ],
+    "operatingSystems": [
+        "Linux"
+    ],
+    "logoImageBlob": "",
+    "aboutText": "This repository is used as a trial only.",
+    "usageText": "This repository is not for public use."
+}
