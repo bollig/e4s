@@ -67,18 +67,13 @@ RUN python -m pip install --upgrade pip setuptools wheel \
  && python -m pip install gnureadline boto3 pyyaml pytz minio requests clingo \
  && rm -rf ~/.cache
 
-RUN apt update -y \
- && apt install -y software-properties-common \
- && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
- && apt install -y \
-    gcc-11 \
-    g++-11 \
-    gfortran-11 \
- && rm -rf /etc/apt/trusted.gpg.d/ubuntu-toolchain-r_ubuntu_test.gpg \
- && rm -rf /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-focal.list \
- && apt remove -y software-properties-common \
- && apt autoremove -y \
- && apt clean -y
+RUN git clone https://github.com/spack/spack \
+ && (cd spack && git checkout v0.17.1 && rm -rf .git) \
+ && export SPACK_DISABLE_LOCAL_CONFIG=1 \
+ && export SPACK_USER_CACHE_PATH=/tmp/_spack_cache \
+ && . /spack/share/spack/setup-env.sh \
+ && spack compiler find \
+ && spack clean -a
 
 RUN ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm \
  && ln -s /usr/include/x86_64-linux-gnu/bits /usr/include/bits \
@@ -86,7 +81,10 @@ RUN ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm \
  && ln -s /usr/include/x86_64-linux-gnu/sys /usr/include/sys
 
 RUN echo . /etc/profile.d/lmod.sh >> /etc/bash.bashrc \
- && sed -i '$ d' /etc/lmod/modulespath
+ && sed -i '$ d' /etc/lmod/modulespath \
+ && echo export SPACK_DISABLE_LOCAL_CONFIG=1 >> /etc/bash.bashrc \
+ && echo export SPACK_USER_CACHE_PATH=/tmp/_spack_cache >> /etc/bash.bashrc \
+ && echo . /spack/share/spack/setup-env.sh >> /etc/bash.bashrc
 
 CMD ["/bin/bash"]
 

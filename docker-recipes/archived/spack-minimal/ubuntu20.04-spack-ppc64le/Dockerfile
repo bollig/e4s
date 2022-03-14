@@ -16,7 +16,7 @@ ENV TZ=America/Los_Angeles
 RUN apt update -y \
  && apt upgrade -y \
  && apt clean -y
- 
+
 RUN apt update -y \
  && apt install -y \
   autoconf \
@@ -67,26 +67,25 @@ RUN python -m pip install --upgrade pip setuptools wheel \
  && python -m pip install gnureadline boto3 pyyaml pytz minio requests clingo \
  && rm -rf ~/.cache
 
-RUN apt update -y \
- && apt install -y software-properties-common \
- && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
- && apt install -y \
-    gcc-11 \
-    g++-11 \
-    gfortran-11 \
- && rm -rf /etc/apt/trusted.gpg.d/ubuntu-toolchain-r_ubuntu_test.gpg \
- && rm -rf /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-focal.list \
- && apt remove -y software-properties-common \
- && apt autoremove -y \
- && apt clean -y
+RUN git clone https://github.com/spack/spack \
+ && (cd spack && git checkout v0.17.1 && rm -rf .git) \
+ && export SPACK_DISABLE_LOCAL_CONFIG=1 \
+ && export SPACK_USER_CACHE_PATH=/tmp/_spack_cache \
+ && . /spack/share/spack/setup-env.sh \
+ && spack compiler find \
+ && spack clean -a
 
-RUN ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm \
- && ln -s /usr/include/x86_64-linux-gnu/bits /usr/include/bits \
- && ln -s /usr/include/x86_64-linux-gnu/gnu /usr/include/gnu \
- && ln -s /usr/include/x86_64-linux-gnu/sys /usr/include/sys
+RUN ln -s /usr/include/powerpc64le-linux-gnu/asm /usr/include/asm \
+ && ln -s /usr/include/powerpc64le-linux-gnu/bits /usr/include/bits \
+ && ln -s /usr/include/powerpc64le-linux-gnu/gnu /usr/include/gnu \
+ && ln -s /usr/include/powerpc64le-linux-gnu/sys /usr/include/sys
 
-RUN echo . /etc/profile.d/lmod.sh >> /etc/bash.bashrc \
- && sed -i '$ d' /etc/lmod/modulespath
+RUN ln -s /usr/lib/powerpc64le-linux-gnu/lua /usr/lib/lua \
+ && echo . /etc/profile.d/lmod.sh >> /etc/bash.bashrc \
+ && sed -i '$ d' /etc/lmod/modulespath \
+ && echo export SPACK_DISABLE_LOCAL_CONFIG=1 >> /etc/bash.bashrc \
+ && echo export SPACK_USER_CACHE_PATH=/tmp/_spack_cache >> /etc/bash.bashrc \
+ && echo . /spack/share/spack/setup-env.sh >> /etc/bash.bashrc
 
 CMD ["/bin/bash"]
 
@@ -94,9 +93,9 @@ ENV NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility \
     LANGUAGE=en_US:en \
     LANG=en_US.UTF-8 \
-    LC_ALL=en_US.UTF-8
+    LC_ALL=en_US.UTF-8 
 
-LABEL io.e4s.build-date=${BUILD_DATE}
-LABEL io.e4s.repo=${BUILD_REPO}
-LABEL io.e4s.repo-ref=${BUILD_REPO_REF}
-LABEL io.e4s.base-img=${BASE_IMAGE}
+LABEL io.e4s.base.build-date=${BUILD_DATE}
+LABEL io.e4s.base.repo=${BUILD_REPO}
+LABEL io.e4s.base.repo-ref=${BUILD_REPO_REF}
+LABEL io.e4s.base.base-img=${BASE_IMAGE}
